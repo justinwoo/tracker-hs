@@ -1,0 +1,3 @@
+# tracker-hs
+
+a tracking application for some of my files written with the Haskell, Elm, Redis, and Scotty (HERS?) stack?...
