@@ -6,6 +6,7 @@ module Routes (routes) where
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString.Char8 (unpack)
 import Data.ByteString.Internal (ByteString)
+import Data.Function ((&))
 import Data.List (intercalate)
 import Data.Text.Lazy (pack)
 import Database.Redis (Connection, Reply)
@@ -34,11 +35,10 @@ routes :: Connection -> [String] -> ScottyM ()
 routes conn myShows = do
   get "/" $ do
     results <- liftIO $ fetchShowsData conn myShows
-    let showData =
-          printf "[%s]" $
-          intercalate "," $
-          makeShowData <$> zip myShows (extract <$> results)
-    indexView showData
+    makeShowData <$> zip myShows (extract <$> results)
+      & intercalate ","
+      & printf "[%s]"
+      & indexView
 
   post "/increment" $ do
     name :: String <- param "name"
