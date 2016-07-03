@@ -2,7 +2,8 @@
 
 module Database where
 
-import Data.ByteString.Char8 (pack)
+import Data.Aeson (ToJSON, toJSON, object, (.=))
+import Data.ByteString.Char8 (pack, unpack)
 import Data.ByteString.Internal (ByteString)
 import Database.Redis
   ( Connection
@@ -30,11 +31,31 @@ seedDB conn xs = seedEntry `traverse` xs
   where
     seedEntry x = runRedis conn $ setnx (prefix x) "0"
 
-fetchShowsData :: Connection -> [String] -> IO [Either Reply (Maybe ByteString)]
-fetchShowsData conn xs =
-  getShow `traverse` xs
+data MyShow = MyShow
+  { name :: String
+  , count :: String
+  }
+
+instance ToJSON MyShow where
+  toJSON (MyShow name' count') = object ["name" .= name', "count" .= count']
+
+extract :: [(String, Either Reply (Maybe ByteString))] -> [MyShow]
+extract xs =
+  extract' <$> xs
   where
-    getShow x = runRedis conn $ get (prefix x)
+    extract' (x, y) =
+      MyShow
+        { name = x
+        , count = case y of
+            Right (Just a) -> unpack a
+            _ -> "N/A"
+        }
+
+fetchShowsData :: Connection -> [String] -> IO [MyShow]
+fetchShowsData conn xs =
+  extract <$> getShow `traverse` xs
+  where
+    getShow x = runRedis conn $ (,) x <$> get (prefix x)
 
 data UpdateShow = INCREMENT | DECREMENT
 

@@ -4,13 +4,9 @@
 module Routes (routes) where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.ByteString.Char8 (unpack)
-import Data.ByteString.Internal (ByteString)
-import Data.Function ((&))
-import Data.List (intercalate)
+import Data.Aeson (encode)
 import Data.Text.Lazy (pack)
-import Database.Redis (Connection, Reply)
-import Text.Printf (printf)
+import Database.Redis (Connection)
 import Web.Scotty
   ( ScottyM
   , get
@@ -22,23 +18,11 @@ import Web.Scotty
 import Database (fetchShowsData, incrementShow, decrementShow)
 import Views.Index (indexView)
 
-extract :: Either Reply (Maybe ByteString) -> String
-extract x = case x of
-  Right (Just a) -> unpack a
-  _ -> "N/A"
-
-makeShowData :: (String, String) -> String
-makeShowData (name, count) =
-  printf "{name: \"%s\", count: \"%s\"}" name count
-
 routes :: Connection -> [String] -> ScottyM ()
 routes conn myShows = do
   get "/" $ do
-    results <- liftIO $ fetchShowsData conn myShows
-    makeShowData <$> zip myShows (extract <$> results)
-      & intercalate ","
-      & printf "[%s]"
-      & indexView
+    myShows' <- liftIO $ fetchShowsData conn myShows
+    indexView $ show $ encode myShows'
 
   post "/increment" $ do
     name :: String <- param "name"

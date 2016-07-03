@@ -32,6 +32,7 @@ executable tracker-hs-exe
                      , regex-compat-tdfa
                      , bytestring
                      , transformers
+                     , aeson
   default-language:    Haskell2010
 
 test-suite tracker-hs-test

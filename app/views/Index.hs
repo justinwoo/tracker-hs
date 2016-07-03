@@ -28,5 +28,5 @@ indexView :: String -> ActionM ()
 indexView showData = html . renderHtml $ layout "tracker" $ do
   div ! class_ "container-fluid" $
     div ! id "app" $ mempty
-  injectScript $ printf "showData = %s;" showData
+  injectScript $ printf "showData = JSON.parse(%s);" showData
   script ! src "index.js" $ mempty
