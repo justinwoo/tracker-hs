@@ -22,13 +22,13 @@ trackerHSPrefix :: String
 trackerHSPrefix = "TRACKERHS-PREFIX-"
 
 prefix :: String -> ByteString
-prefix x = pack $ trackerHSPrefix ++ x
+prefix = pack . (++) trackerHSPrefix
 
 getDBConnection :: IO Connection
 getDBConnection = connect defaultConnectInfo
 
 seedDB :: Connection -> [String] -> IO [Either Reply Bool]
-seedDB conn xs = seedEntry `traverse` xs
+seedDB conn = traverse seedEntry
   where
     seedEntry x = runRedis conn $ setnx (prefix x) "0"
 
@@ -56,8 +56,8 @@ fetchShowsData conn xs =
 data UpdateShow = INCREMENT | DECREMENT
 
 updateShow :: UpdateShow -> Connection -> String -> IO (Either Reply Integer)
-updateShow update conn x =
-  runRedis conn $ command (prefix x)
+updateShow update conn =
+  runRedis conn . command . prefix
   where
     command = case update of
       INCREMENT -> incr

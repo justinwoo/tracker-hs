@@ -22,7 +22,7 @@ import Web.Scotty (ActionM, html)
 import Views.Layout (layout)
 
 injectScript :: String -> Html
-injectScript x = script $ toHtml x
+injectScript = script . toHtml
 
 indexView :: String -> ActionM ()
 indexView showData = html . renderHtml $ layout "tracker" $ do

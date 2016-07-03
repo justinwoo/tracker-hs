@@ -17,7 +17,7 @@ getShows :: IO [FilePath]
 getShows = getEnv "ANIMU_HOME" >>= getDirectoryContents
 
 getNames :: [FilePath] -> [String]
-getNames xs = xs >>= getName
+getNames = (=<<) getName
   where
     getName x =
       case (matchTest front x, matchTest back x) of
