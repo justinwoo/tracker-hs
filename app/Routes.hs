@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Routes (routes) where
 
@@ -25,14 +24,14 @@ routes conn myShows = do
     indexView myShows'
 
   post "/increment" $ do
-    name :: String <- param "name"
+    name <- param "name"
     result <- liftIO $ incrementShow conn name
     case result of
       Right int -> html $ pack $ show int
       _ -> html "u suck"
 
   post "/decrement" $ do
-    name :: String <- param "name"
+    name <- param "name"
     result <- liftIO $ decrementShow conn name
     case result of
       Right int -> html $ pack $ show int
