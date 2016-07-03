@@ -40,23 +40,18 @@ data MyShow = MyShow
 instance ToJSON MyShow where
   toJSON (MyShow name' count') = object ["name" .= name', "count" .= count']
 
-extract :: [(String, Either Reply (Maybe ByteString))] -> [MyShow]
-extract xs =
-  extract' <$> xs
+fetchShowsData :: Connection -> [String] -> IO [MyShow]
+fetchShowsData conn xs =
+  (<$>) extract <$> getShow `traverse` xs
   where
-    extract' (x, y) =
+    getShow x = runRedis conn $ (x,) <$> get (prefix x)
+    extract (x, y) =
       MyShow
         { name = x
         , count = case y of
             Right (Just a) -> unpack a
             _ -> "N/A"
         }
-
-fetchShowsData :: Connection -> [String] -> IO [MyShow]
-fetchShowsData conn xs =
-  extract <$> getShow `traverse` xs
-  where
-    getShow x = runRedis conn $ (x,) <$> get (prefix x)
 
 data UpdateShow = INCREMENT | DECREMENT
 
