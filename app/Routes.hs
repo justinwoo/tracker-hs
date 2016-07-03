@@ -21,8 +21,8 @@ import Views.Index (indexView)
 routes :: Connection -> [String] -> ScottyM ()
 routes conn myShows = do
   get "/" $ do
-    myShows' <- liftIO $ fetchShowsData conn myShows
-    indexView $ show $ encode myShows'
+    myShows' <- liftIO $ show . encode <$> fetchShowsData conn myShows
+    indexView myShows'
 
   post "/increment" $ do
     name :: String <- param "name"
