@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Database where
 
@@ -55,7 +56,7 @@ fetchShowsData :: Connection -> [String] -> IO [MyShow]
 fetchShowsData conn xs =
   extract <$> getShow `traverse` xs
   where
-    getShow x = runRedis conn $ (,) x <$> get (prefix x)
+    getShow x = runRedis conn $ (x,) <$> get (prefix x)
 
 data UpdateShow = INCREMENT | DECREMENT
 
