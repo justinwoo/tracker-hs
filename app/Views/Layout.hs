@@ -24,5 +24,5 @@ layout t b = docTypeHtml $ do
   head $ do
     title t
     meta ! charset "utf-8"
-    link ! href "http://v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css" ! rel "stylesheet"
+    link ! href "//v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css" ! rel "stylesheet"
   body b

@@ -13,10 +13,14 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
-executable tracker-hs-exe
+executable tracker-hs
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  other-modules:       Database
+                     , Routes
+                     , Views.Index
+                     , Views.Layout
   build-depends:       base
                      , scotty
                      , clay

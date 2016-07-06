@@ -2,6 +2,7 @@
 
 module Main where
 
+import Data.ByteString.Char8 (pack)
 import Data.List (nub)
 import Network.Wai.Middleware.Static (staticPolicy, addBase)
 import System.Directory (getDirectoryContents)
@@ -10,7 +11,7 @@ import Text.Regex (mkRegex, subRegex)
 import Text.Regex.Base (matchTest)
 import Web.Scotty (scotty, middleware)
 
-import Database (getDBConnection, seedDB)
+import Database (connectInfo, getDBConnection, seedDB)
 import Routes (routes)
 
 getShows :: IO [FilePath]
@@ -32,9 +33,13 @@ getNames = (=<<) getName
 main :: IO ()
 main = do
   myShows <- nub . getNames <$> getShows
-  conn <- getDBConnection
+  port <- read <$> getEnv "PORT"
+  host <- getEnv "REDIS_HOST"
+  redisPort <- getEnv "REDIS_PORT"
+  auth <- getEnv "REDIS_AUTH"
+  conn <- getDBConnection $ connectInfo host redisPort $ pack auth
   _ <- seedDB conn myShows
 
-  scotty 1234 $ do
+  scotty port $ do
     middleware $ staticPolicy $ addBase "web/dist"
     routes conn myShows
