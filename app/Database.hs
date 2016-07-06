@@ -9,7 +9,12 @@ import Data.ByteString.Internal (ByteString)
 import Database.Redis
   ( Connection
   , Reply
+  , ConnectInfo
+  , PortID(Service)
   , connect
+  , connectHost
+  , connectPort
+  , connectAuth
   , defaultConnectInfo
   , runRedis
   , get
@@ -24,8 +29,16 @@ trackerHSPrefix = "TRACKERHS-PREFIX-"
 prefix :: String -> ByteString
 prefix = pack . (++) trackerHSPrefix
 
-getDBConnection :: IO Connection
-getDBConnection = connect defaultConnectInfo
+connectInfo :: String -> String -> ByteString -> ConnectInfo
+connectInfo host port auth =
+ defaultConnectInfo
+    { connectHost = host
+    , connectPort = Service port
+    , connectAuth = Just auth
+    }
+
+getDBConnection :: ConnectInfo -> IO Connection
+getDBConnection = connect
 
 seedDB :: Connection -> [String] -> IO [Either Reply Bool]
 seedDB conn = traverse seedEntry
