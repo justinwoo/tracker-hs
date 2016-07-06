@@ -33,12 +33,13 @@ getNames = (=<<) getName
 main :: IO ()
 main = do
   myShows <- nub . getNames <$> getShows
+  port <- read <$> getEnv "PORT"
   host <- getEnv "REDIS_HOST"
-  port <- getEnv "REDIS_PORT"
+  redisPort <- getEnv "REDIS_PORT"
   auth <- getEnv "REDIS_AUTH"
-  conn <- getDBConnection $ connectInfo host port $ pack auth
+  conn <- getDBConnection $ connectInfo host redisPort $ pack auth
   _ <- seedDB conn myShows
 
-  scotty 1234 $ do
+  scotty port $ do
     middleware $ staticPolicy $ addBase "web/dist"
     routes conn myShows
