@@ -3,6 +3,7 @@
 
 module Database where
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Aeson (ToJSON, toJSON, object, (.=))
 import Data.ByteString.Char8 (pack, unpack)
 import Data.ByteString.Internal (ByteString)
@@ -53,12 +54,12 @@ data MyShow = MyShow
 instance ToJSON MyShow where
   toJSON (MyShow name' count') = object ["name" .= name', "count" .= count']
 
-fetchShowsData :: Connection -> [String] -> IO [MyShow]
-fetchShowsData conn xs =
-  (<$>) extract <$> getShow `traverse` xs
+fetchShowsData :: MonadIO m => Connection -> [String] -> m [MyShow]
+fetchShowsData conn =
+  traverse $ liftIO . getShow
   where
-    getShow x = runRedis conn $ (x,) <$> get (prefix x)
-    extract (x, y) =
+    getShow x = runRedis conn $ myShow x <$> get (prefix x)
+    myShow x y =
       MyShow
         { name = x
         , count = case y of
@@ -68,16 +69,16 @@ fetchShowsData conn xs =
 
 data UpdateShow = INCREMENT | DECREMENT
 
-updateShow :: UpdateShow -> Connection -> String -> IO (Either Reply Integer)
+updateShow :: MonadIO m => UpdateShow -> Connection -> String -> m (Either Reply Integer)
 updateShow update conn =
-  runRedis conn . command . prefix
+  liftIO . runRedis conn . command . prefix
   where
     command = case update of
       INCREMENT -> incr
       DECREMENT -> decr
 
-incrementShow :: Connection -> String -> IO (Either Reply Integer)
+incrementShow :: MonadIO m => Connection -> String -> m (Either Reply Integer)
 incrementShow = updateShow INCREMENT
 
-decrementShow :: Connection -> String -> IO (Either Reply Integer)
+decrementShow :: MonadIO m => Connection -> String -> m (Either Reply Integer)
 decrementShow = updateShow DECREMENT

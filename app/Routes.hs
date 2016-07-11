@@ -2,7 +2,6 @@
 
 module Routes (routes) where
 
-import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (encode)
 import Data.Text.Lazy (pack)
 import Database.Redis (Connection)
@@ -20,19 +19,19 @@ import Views.Index (indexView)
 routes :: Connection -> [String] -> ScottyM ()
 routes conn myShows = do
   get "/" $ do
-    myShows' <- liftIO $ show . encode <$> fetchShowsData conn myShows
+    myShows' <- show . encode <$> fetchShowsData conn myShows
     indexView myShows'
 
   post "/increment" $ do
     name <- param "name"
-    result <- liftIO $ incrementShow conn name
+    result <- incrementShow conn name
     case result of
       Right int -> html $ pack $ show int
       _ -> html "u suck"
 
   post "/decrement" $ do
     name <- param "name"
-    result <- liftIO $ decrementShow conn name
+    result <- decrementShow conn name
     case result of
       Right int -> html $ pack $ show int
       _ -> html "u suck"
