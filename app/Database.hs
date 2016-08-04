@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 
 module Database where
 
@@ -18,7 +19,7 @@ import Database.Redis
   , connectAuth
   , defaultConnectInfo
   , runRedis
-  , get
+  , mget
   , setnx
   , incr
   , decr
@@ -55,16 +56,21 @@ instance ToJSON MyShow where
   toJSON (MyShow name' count') = object ["name" .= name', "count" .= count']
 
 fetchShowsData :: MonadIO m => Connection -> [String] -> m [MyShow]
-fetchShowsData conn =
-  traverse $ liftIO . getShow
+fetchShowsData conn keys =
+  liftIO . runRedis conn $ do
+    values <- fmap extract <$> mget $ prefix <$> keys
+    return $ zipWith myShow keys values
   where
-    getShow x = runRedis conn $ myShow x <$> get (prefix x)
+    extract (Right xs) = unpack' <$> xs
+    extract _ = []
+
+    unpack' (Just x) = unpack x
+    unpack' _ = "N/A"
+
     myShow x y =
       MyShow
         { name = x
-        , count = case y of
-            Right (Just a) -> unpack a
-            _ -> "N/A"
+        , count = y
         }
 
 data UpdateShow = INCREMENT | DECREMENT
