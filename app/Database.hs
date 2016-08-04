@@ -58,15 +58,13 @@ instance ToJSON MyShow where
 fetchShowsData :: MonadIO m => Connection -> [String] -> m [MyShow]
 fetchShowsData conn keys =
   liftIO . runRedis conn $ do
-    values <- fmap extract <$> mget $ prefix <$> keys
-    return $ zipWith myShow keys values
+    result <- mget $ map prefix keys
+    case result of
+      Right xs -> do
+        let values = map (maybe "N/A" unpack) xs
+        return $ zipWith myShow keys values
+      Left _ -> return []
   where
-    extract (Right xs) = unpack' <$> xs
-    extract _ = []
-
-    unpack' (Just x) = unpack x
-    unpack' _ = "N/A"
-
     myShow x y =
       MyShow
         { name = x
